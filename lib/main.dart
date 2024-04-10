@@ -1,3 +1,4 @@
+import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -41,13 +42,17 @@ class _MyHomePageState extends State<MyHomePage> {
           GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext ctx) {
-                    return const AlertDialog(
-                      title: Text('text'),
-                    );
-                  });
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const BakersPercentScreen()));
+              // showDialog(
+              //     context: context,
+              //     builder: (BuildContext ctx) {
+              //       return const AlertDialog(
+              //         title: Text('text'),
+              //       );
+              //     });
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 23),
