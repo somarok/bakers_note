@@ -42,6 +42,7 @@ dependencies:
 
   sqflite: ^2.2.8 # SQL 쿼리를 사용하기 위함
   crypto: ^3.0.3 # 정보 암호화를 위함 (사용자 비밀번호 암호화)
+  provider: ^6.1.2
 
 
 

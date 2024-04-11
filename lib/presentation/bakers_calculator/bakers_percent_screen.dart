@@ -1,5 +1,9 @@
-import 'package:bakers_note/presentation/component/ingredient_form_row.dart';
+import 'package:bakers_note/data/model/ingredient.dart';
+import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+import 'component/ingredient_form_row.dart';
 
 class BakersPercentScreen extends StatefulWidget {
   const BakersPercentScreen({super.key});
@@ -9,26 +13,36 @@ class BakersPercentScreen extends StatefulWidget {
 }
 
 class _BakersPercentScreenState extends State<BakersPercentScreen> {
-  final List<IngredientFormRow> _textFormWidget = [];
   final formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<BakersPercentViewModel>();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  const Row(
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: const BoxDecoration(
+                    border: BorderDirectional(
+                      bottom: BorderSide(
+                        color: Color.fromARGB(255, 255, 204, 0),
+                      ),
+                    ),
+                  ),
+                  child: const Row(
                     children: [
                       Expanded(
                         flex: 3,
                         child: Text(
                           '재료',
+                          textAlign: TextAlign.center,
                         ),
                       ),
                       Expanded(
@@ -47,33 +61,49 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                       ),
                     ],
                   ),
-                  IngredientFormRow(
-                    onEditingComplete: addTextField,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                    '재료를 좌우로 스와이프하면 삭제할 수 있습니다.',
+                    style: TextStyle(color: Colors.grey),
                   ),
-                  ..._textFormWidget.map((e) => e),
-                  Container(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => addTextField(),
-                      child: const Text('재료 추가'),
-                    ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: viewModel.ingredients.length,
+                    itemBuilder: (context, index) {
+                      final ingredients = viewModel.ingredients;
+                      return Dismissible(
+                        key: UniqueKey(),
+                        child: IngredientFormRow(
+                          onEditingComplete: viewModel.onFinishAddIngredient,
+                          ingredient: Ingredient(
+                            id: ingredients[index].id,
+                            name: ingredients[index].name,
+                            weight: ingredients[index].weight,
+                            percent: ingredients[index].percent,
+                          ),
+                          onDismissed: () => viewModel
+                              .onDismissedIngredient(ingredients[index].id),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => viewModel.onPressAddIngredientButton(),
+                    child: const Text('재료 추가'),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
-  }
-
-// 동적으로 폼필드 추가시키기
-  void addTextField() {
-    setState(() {
-      _textFormWidget.add(IngredientFormRow(
-        onEditingComplete: addTextField,
-      ));
-    });
   }
 
   // TODO. 백분율 계산 후 텍스트 표시
