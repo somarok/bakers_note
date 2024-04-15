@@ -1,3 +1,4 @@
+import 'package:bakers_note/common/app_colors.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_screen.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_view_model.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -36,36 +36,77 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('베이커스 노트'),
+        title: const Text('Baker\'s Note 📝'),
       ),
-      body: Column(
-        children: [
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (BuildContext context) =>
-                      ChangeNotifierProvider<BakersPercentViewModel>(
-                    create: (_) => BakersPercentViewModel(),
-                    builder: (context, child) => const BakersPercentScreen(),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        ChangeNotifierProvider<BakersPercentViewModel>(
+                      create: (_) => BakersPercentViewModel(),
+                      builder: (context, child) => const BakersPercentScreen(),
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(bottom: 10),
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 2,
+                      color: Color.fromARGB(255, 255, 237, 202),
+                    ),
                   ),
                 ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 23),
-              child: const Row(
-                children: [
-                  Text(
-                    '베이커스 퍼센트 계산기',
-                    style: TextStyle(fontSize: 25),
-                  ),
-                ],
+                child: const Row(
+                  children: [
+                    Text(
+                      '🥐 베이커스 퍼센트 계산하기 > ',
+                      textAlign: TextAlign.start,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {},
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.only(bottom: 10),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 2,
+                      color: Color.fromARGB(255, 255, 237, 202),
+                    ),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Text(
+                      '📙 내가 저장한 레시피 (준비중) > ',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
