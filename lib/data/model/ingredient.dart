@@ -20,7 +20,7 @@ class Ingredient {
       name: '',
       weight: 0,
       percent: 0,
-      isFlour: false,
+      isFlour: id == 1 ? true : false,
     );
   }
 
