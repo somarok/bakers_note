@@ -3,6 +3,7 @@ class Ingredient {
   final String name;
   final num weight;
   final num percent;
+  final bool isFlour;
 
 //<editor-fold desc="Data Methods">
   const Ingredient({
@@ -10,9 +11,18 @@ class Ingredient {
     required this.name,
     required this.weight,
     required this.percent,
+    required this.isFlour,
   });
 
-  Ingredient.empty(this.id, this.name, this.weight, this.percent);
+  factory Ingredient.empty(int id) {
+    return Ingredient(
+      id: id,
+      name: '',
+      weight: 0,
+      percent: 0,
+      isFlour: false,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -38,12 +48,14 @@ class Ingredient {
     String? name,
     num? weight,
     num? percent,
+    bool? isFlour,
   }) {
     return Ingredient(
       id: id ?? this.id,
       name: name ?? this.name,
       weight: weight ?? this.weight,
       percent: percent ?? this.percent,
+      isFlour: isFlour ?? this.isFlour,
     );
   }
 
@@ -53,6 +65,7 @@ class Ingredient {
       'name': name,
       'weight': weight,
       'percent': percent,
+      'isFlour': isFlour,
     };
   }
 
@@ -62,6 +75,7 @@ class Ingredient {
       name: json['name'] as String,
       weight: json['weight'] as num,
       percent: json['percent'] as num,
+      isFlour: json['isFlour'] as bool,
     );
   }
 
