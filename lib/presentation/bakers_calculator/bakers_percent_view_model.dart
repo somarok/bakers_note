@@ -1,64 +1,40 @@
+import 'package:bakers_note/data/domain/repository/ingredient_repository.dart';
+import 'package:bakers_note/data/domain/use_case/calculate_percent_use_case.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../../data/model/ingredient.dart';
 
 class BakersPercentViewModel with ChangeNotifier {
+  final IngredientRepository _ingredientRepository;
+  final CalculatePercentUseCase _calculatePercentUseCase =
+      CalculatePercentUseCase();
+
+  BakersPercentViewModel({
+    required IngredientRepository ingredientRepository,
+  }) : _ingredientRepository = ingredientRepository;
+
   List<Ingredient> _ingredients = [];
 
   List<Ingredient> get ingredients => List.unmodifiable(_ingredients);
 
   /// 재료 정보 입력
   void onEditingIngredient(int id, {String? name, num? weight}) {
-    final index = _ingredients.indexWhere((e) => e.id == id);
-
-    if (index == -1) return;
-
-    _ingredients[index] = _ingredients[index].copyWith(
-      name: name ?? _ingredients[index].name,
-      weight: weight ?? _ingredients[index].weight,
-    );
+    _ingredientRepository.updateIngredient(id, name: name, weight: weight);
   }
 
-  void calculatePercent() {
-    num flourWeight = 0;
-
-    final List<Ingredient> newIngredients = List.from(_ingredients);
-
-    flourWeight = newIngredients
-        .where((ingredient) => ingredient.isFlour)
-        .map((ingredient) => ingredient.weight)
-        .fold(0, (prev, curr) => prev + curr);
-
-    // 각 재료 객체의 percent 값을 계산하여 업데이트
-    _ingredients = newIngredients.map((ingredient) {
-      // 밀가루의 무게가 0이 아닌 경우에만 percent 값을 계산하여 업데이트
-      if (flourWeight != 0) {
-        num percent =
-            (((ingredient.weight / flourWeight) * 100 * 10).round()) / 10;
-        if (percent % 1 == 0) {
-          percent = percent.toInt();
-        }
-
-        return ingredient.copyWith(
-          percent: percent,
-        );
-      } else {
-        // 밀가루의 무게가 0이면 percent 값을 0으로 설정
-        return ingredient.copyWith(percent: 0);
-      }
-    }).toList();
-
+  void calculatePercent() async {
+    _ingredients = await _calculatePercentUseCase.execute(ingredients);
     notifyListeners();
   }
 
   /// 기준 설정
   void onLongPressedRow(int id) {
-    final index = _ingredients.indexWhere((e) => e.id == id);
+    final index = ingredients.indexWhere((e) => e.id == id);
 
     if (index == -1) return;
 
-    _ingredients[index] = _ingredients[index].copyWith(
-      isFlour: !_ingredients[index].isFlour,
+    _ingredients[index] = ingredients[index].copyWith(
+      isFlour: !ingredients[index].isFlour,
     );
 
     calculatePercent();
@@ -78,20 +54,22 @@ class BakersPercentViewModel with ChangeNotifier {
   }
 
   /// 재료 입력 필드 추가
-  void addIngredientFormRow() {
-    _ingredients.add(Ingredient.empty(
-      _ingredients.isEmpty ? 1 : _ingredients.last.id + 1,
+  void addIngredientFormRow() async {
+    await _ingredientRepository.addIngredient(Ingredient.empty(
+      ingredients.isEmpty ? 1 : ingredients.last.id + 1,
     ));
+    _ingredients = await _ingredientRepository.getIngredients();
 
     notifyListeners();
   }
 
   /// 재료 삭제
-  void onDismissedIngredient(int id) {
-    _ingredients.removeWhere((element) => element.id == id);
+  void onDismissedIngredient(int id) async {
+    await _ingredientRepository.deleteIngredient(id);
+    _ingredients = await _ingredientRepository.getIngredients();
 
     notifyListeners();
   }
 
-  // TODO. 입력한 백분율로 용량 조절해서 보여주기
+// TODO. 입력한 백분율로 용량 조절해서 보여주기
 }

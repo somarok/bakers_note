@@ -1,4 +1,4 @@
-import 'package:bakers_note/common/app_colors.dart';
+import 'package:bakers_note/data/repository/ingredient_repository_impl.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_screen.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_view_model.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +49,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   MaterialPageRoute(
                     builder: (BuildContext context) =>
                         ChangeNotifierProvider<BakersPercentViewModel>(
-                      create: (_) => BakersPercentViewModel(),
+                      create: (_) => BakersPercentViewModel(
+                        ingredientRepository: IngredientRepositoryImpl(),
+                      ),
                       builder: (context, child) => const BakersPercentScreen(),
                     ),
                   ),
