@@ -1,6 +1,5 @@
 import 'package:bakers_note/data/model/ingredient.dart';
-
-import '../domain/repository/ingredient_repository.dart';
+import 'package:bakers_note/domain/repository/ingredient_repository.dart';
 
 class IngredientRepositoryImpl implements IngredientRepository {
   List<Ingredient> _ingredients = [];

@@ -1,5 +1,5 @@
-import 'package:bakers_note/data/domain/repository/ingredient_repository.dart';
-import 'package:bakers_note/data/domain/use_case/calculate_percent_use_case.dart';
+import 'package:bakers_note/domain/repository/ingredient_repository.dart';
+import 'package:bakers_note/domain/use_case/calculate_percent_use_case.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../../data/model/ingredient.dart';
