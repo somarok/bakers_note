@@ -73,7 +73,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                           onTap: () {},
                           child: const Row(children: [
                             Text(
-                              '기준',
+                              '밀가루',
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(width: 3),
