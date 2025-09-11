@@ -66,6 +66,7 @@ class BakersPercentViewModel with ChangeNotifier {
 
   /// 재료 추가 버튼 클릭
   void onPressAddIngredientButton() {
+    calculatePercent();
     addIngredientFormRow();
   }
 
