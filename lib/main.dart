@@ -1,4 +1,3 @@
-import 'package:bakers_note/common/app_colors.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_screen.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_view_model.dart';
 import 'package:flutter/material.dart';
