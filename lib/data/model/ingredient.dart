@@ -1,8 +1,22 @@
+import 'package:hive/hive.dart';
+
+part 'ingredient.g.dart';
+
+@HiveType(typeId: 0)
 class Ingredient {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final num weight;
+
+  @HiveField(3)
   final num percent;
+
+  @HiveField(4)
   final bool isFlour;
 
 //<editor-fold desc="Data Methods">

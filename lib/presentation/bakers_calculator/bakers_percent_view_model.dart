@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../data/model/ingredient.dart';
+import '../../data/model/bakers_recipe.dart';
+import '../../data/repository/recipe_repository.dart';
 
 class BakersPercentViewModel with ChangeNotifier {
+  final RecipeRepository _repository = RecipeRepository();
   List<Ingredient> _ingredients = [];
 
   List<Ingredient> get ingredients => List.unmodifiable(_ingredients);
@@ -19,7 +22,7 @@ class BakersPercentViewModel with ChangeNotifier {
     );
   }
 
-  void calculatePercent() {
+  void calculatePercent({bool notify = true}) {
     num flourWeight = 0;
 
     final List<Ingredient> newIngredients = List.from(_ingredients);
@@ -33,8 +36,7 @@ class BakersPercentViewModel with ChangeNotifier {
     _ingredients = newIngredients.map((ingredient) {
       // 밀가루의 무게가 0이 아닌 경우에만 percent 값을 계산하여 업데이트
       if (flourWeight != 0) {
-        num percent =
-            (((ingredient.weight / flourWeight) * 100 * 10).round()) / 10;
+        num percent = (((ingredient.weight / flourWeight) * 100 * 10).round()) / 10;
         if (percent % 1 == 0) {
           percent = percent.toInt();
         }
@@ -48,7 +50,9 @@ class BakersPercentViewModel with ChangeNotifier {
       }
     }).toList();
 
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   /// 기준 설정
@@ -79,12 +83,13 @@ class BakersPercentViewModel with ChangeNotifier {
   }
 
   /// 재료 입력 필드 추가
-  void addIngredientFormRow() {
+  void addIngredientFormRow({bool isNotify = true}) {
     _ingredients.add(Ingredient.empty(
       _ingredients.isEmpty ? 1 : _ingredients.last.id + 1,
     ));
-
-    notifyListeners();
+    if (isNotify) {
+      notifyListeners();
+    }
   }
 
   /// 재료 삭제
@@ -92,6 +97,33 @@ class BakersPercentViewModel with ChangeNotifier {
     _ingredients.removeWhere((element) => element.id == id);
 
     notifyListeners();
+  }
+
+  /// 레시피 저장
+  Future<BakersRecipe> saveRecipe({String? name}) async {
+    // 백분율 계산 (UI 업데이트 없이)
+    calculatePercent(notify: false);
+
+    // 빈 재료 제외 (이름이 비어있거나 무게가 0인 재료 제외)
+    final validIngredients = _ingredients
+        .where((ingredient) => ingredient.name.isNotEmpty && ingredient.weight > 0)
+        .toList();
+
+    final recipe = BakersRecipe(
+      name: name,
+      ingredients: validIngredients,
+      createdAt: DateTime.now(),
+    );
+
+    // Hive에 저장
+    await _repository.saveRecipe(recipe);
+
+    return recipe;
+  }
+
+  /// 저장된 모든 레시피 가져오기
+  List<BakersRecipe> getSavedRecipes() {
+    return _repository.getAllRecipes();
   }
 
   // TODO. 입력한 백분율로 용량 조절해서 보여주기
