@@ -70,16 +70,18 @@ class BakersPercentViewModel with ChangeNotifier {
 
   /// 재료 추가 버튼 클릭
   void onPressAddIngredientButton() {
-    calculatePercent();
-    addIngredientFormRow();
+    // 불필요한 rebuild 방지: 계산 시 notify 없이, 새 행 추가할 때만 notify
+    calculatePercent(notify: false);
+    addIngredientFormRow(isNotify: true);
   }
 
   /// 재료 한 줄 입력 완료시 (무게 입력 완료) 다음 열 추가
   void onFinishedAddIngredient(int id) {
     if (ingredients.last.id == id) {
-      addIngredientFormRow();
+      // 불필요한 rebuild 방지: 새 행 추가 시 notify 없이, 계산할 때만 notify
+      addIngredientFormRow(isNotify: false);
     }
-    calculatePercent();
+    calculatePercent(notify: true);
   }
 
   /// 재료 입력 필드 추가
@@ -115,12 +117,10 @@ class BakersPercentViewModel with ChangeNotifier {
       createdAt: DateTime.now(),
     );
 
-    // Hive에 저장
     await _repository.saveRecipe(recipe);
 
     return recipe;
   }
-
   /// 저장된 모든 레시피 가져오기
   List<BakersRecipe> getSavedRecipes() {
     return _repository.getAllRecipes();

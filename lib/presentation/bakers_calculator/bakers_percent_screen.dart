@@ -1,9 +1,6 @@
 import 'package:bakers_note/common/app_colors.dart';
-import 'package:bakers_note/data/model/ingredient.dart';
 import 'package:bakers_note/presentation/bakers_calculator/bakers_percent_view_model.dart';
-import 'package:bakers_note/router/app_router.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'component/ingredient_form_row.dart';
 import '../common/component/tooltip.dart';
@@ -20,22 +17,6 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
   final scrollController = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-
-    Future.microtask(
-      () => {
-        context.read<BakersPercentViewModel>().addIngredientFormRow(),
-      },
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
   void dispose() {
     scrollController.dispose();
     FocusManager.instance.primaryFocus?.unfocus();
@@ -45,7 +26,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<BakersPercentViewModel>();
+    final BakersPercentViewModel viewModel = context.watch<BakersPercentViewModel>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -53,10 +34,45 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
         title: const Text('베이커스 퍼센트'),
         surfaceTintColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () => _showSaveDialog(context, viewModel),
-            tooltip: '저장',
+          TextButton(
+            child: const Text('저장'),
+            onPressed: () {
+              // 재료명만 있고 무게가 없는 경우 확인
+              final ingredientsWithoutWeight = viewModel.ingredients
+                  .where((ingredient) => ingredient.name.isNotEmpty && ingredient.weight <= 0)
+                  .toList();
+
+              if (ingredientsWithoutWeight.isNotEmpty) {
+                final ingredientNames = ingredientsWithoutWeight.map((ingredient) => ingredient.name).join(', ');
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$ingredientNames의 무게를 입력해주세요'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: AppColors.primaryColor90,
+                  ),
+                );
+                return;
+              }
+
+              // 유효한 재료가 있는지 확인
+              final validIngredients = viewModel.ingredients
+                  .where((ingredient) => ingredient.name.isNotEmpty && ingredient.weight > 0)
+                  .toList();
+
+              if (validIngredients.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('재료의 이름을 입력해주세요'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: AppColors.primaryColor90,
+                  ),
+                );
+                return;
+              }
+
+              _showSaveDialog(context, viewModel);
+            },
           ),
         ],
       ),
@@ -64,127 +80,330 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
         child: GestureDetector(
           onTap: () {
             FocusManager.instance.primaryFocus?.unfocus();
-            viewModel.calculatePercent();
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: const BoxDecoration(
-                      border: BorderDirectional(
-                        bottom: BorderSide(
-                          color: AppColors.primaryColorAccent,
+          child: Stack(children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: BorderDirectional(
+                          bottom: BorderSide(
+                            color: AppColors.primaryColorAccent,
+                          ),
                         ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Row(children: [
-                            Text(
-                              '밀가루',
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(width: 3),
-                            ToolTipWrapper(
-                              message: '베이커스 퍼센트는 밀가루의 중량을 기준으로 계산됩니다.\n밀가루에 해당되는 재료를 체크해주세요 :)',
-                              child: Icon(
-                                Icons.info_outline,
-                                size: 20,
-                                color: Colors.grey,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {},
+                            child: const Row(children: [
+                              Text(
+                                '밀가루',
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(width: 3),
+                              ToolTipWrapper(
+                                message: '베이커스 퍼센트는 밀가루의 중량을 기준으로 계산됩니다.\n밀가루에 해당되는 재료를 체크해주세요 :)',
+                                child: Icon(
+                                  Icons.info_outline,
+                                  size: 20,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ]),
+                          ),
+                          const Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 10),
+                              child: Text(
+                                '재료',
+                                textAlign: TextAlign.left,
                               ),
                             ),
-                          ]),
-                        ),
-                        const Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 10),
+                          ),
+                          const Expanded(
+                            flex: 2,
                             child: Text(
-                              '재료',
-                              textAlign: TextAlign.left,
+                              '무게',
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                        ),
-                        const Expanded(
-                          flex: 2,
-                          child: Text(
-                            '무게',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const Expanded(
-                          flex: 1,
-                          child: Text(
-                            '백분율',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: Text(
-                      '재료를 오른쪽으로 스와이프하면 삭제할 수 있습니다.',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                  Expanded(
-                    child: Scrollbar(
-                      controller: scrollController,
-                      child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: viewModel.ingredients.length,
-                        itemBuilder: (context, index) {
-                          final ingredients = viewModel.ingredients;
-                          return IngredientFormRow(
-                            onLongPressed: (int id) => viewModel.onLongPressedRow(ingredients[index].id),
-                            onEditingWeightComplete: (int id) {
-                              viewModel.onFinishedAddIngredient(ingredients[index].id);
-                              _scrollDown();
-                            },
-                            ingredient: Ingredient(
-                              id: ingredients[index].id,
-                              name: ingredients[index].name,
-                              weight: ingredients[index].weight,
-                              percent: ingredients[index].percent,
-                              isFlour: ingredients[index].isFlour,
+                          const Expanded(
+                            flex: 1,
+                            child: Text(
+                              '백분율',
+                              textAlign: TextAlign.center,
                             ),
-                            onDismissed: () => viewModel.onDismissedIngredient(ingredients[index].id),
-                            onEditingIngredient: (int id, {String? name, num? weight}) =>
-                                viewModel.onEditingIngredient(id, name: name, weight: weight),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 80),
-                ],
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        '재료를 오른쪽으로 스와이프하면 삭제할 수 있습니다.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    Expanded(
+                      child: Scrollbar(
+                        controller: scrollController,
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: viewModel.ingredients.length + 1, // 버튼을 위한 +1
+                          itemBuilder: (context, index) {
+                            // 마지막 인덱스일 때 버튼 반환
+                            if (index == viewModel.ingredients.length) {
+                              return Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: IconButton(
+                                  onPressed: () {
+                                    viewModel.onPressAddIngredientButton();
+                                    _scrollDown();
+                                  },
+                                  tooltip: '재료 추가',
+                                  icon: const Icon(Icons.add),
+                                ),
+                              );
+                            }
+
+                            // 그 외에는 재료 행 반환
+                            final ingredient = viewModel.ingredients[index];
+                            return IngredientFormRow(
+                              key: ValueKey(ingredient.id),
+                              onLongPressed: (int id) => viewModel.onLongPressedRow(ingredient.id),
+                              onEditingWeightComplete: (int id) {
+                                viewModel.onFinishedAddIngredient(ingredient.id);
+                                _scrollDown();
+                              },
+                              ingredient: ingredient,
+                              onDismissed: () => viewModel.onDismissedIngredient(ingredient.id),
+                              onEditingIngredient: (int id, {String? name, num? weight}) =>
+                                  viewModel.onEditingIngredient(id, name: name, weight: weight),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 50),
+                  ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              bottom: 0,
+              child: Row(
+                children: [
+                  _scaleButton(
+                    label: '1/2',
+                    scale: 0.5,
+                    viewModel: viewModel,
+                  ),
+                  const SizedBox(width: 10),
+                  _scaleButton(
+                    label: '1/4',
+                    scale: 0.25,
+                    viewModel: viewModel,
+                  ),
+                  const SizedBox(width: 10),
+                  _scaleButton(
+                    label: '2배',
+                    scale: 2.0,
+                    viewModel: viewModel,
+                  )
+                ],
+              ),
+            )
+          ]),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          viewModel.onPressAddIngredientButton();
-          _scrollDown();
-        },
-        tooltip: '재료 추가',
-        backgroundColor: AppColors.primaryColor10,
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _scaleButton({
+    required String label,
+    required double scale,
+    required BakersPercentViewModel viewModel,
+  }) {
+    return TextButton(
+      onPressed: () async {
+        // 포커스 해제 (포커스 해제 시 ViewModel 업데이트됨)
+        FocusManager.instance.primaryFocus?.unfocus();
+
+        // 포커스 해제 완료 대기 (FocusNode listener 실행 대기)
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (!mounted) return;
+
+        // 백분율 계산
+        viewModel.calculatePercent();
+
+        if (!context.mounted) return;
+        _showScaledRecipeDialog(context, viewModel, scale, label);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor10,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(label),
       ),
     );
   }
 
   void _scrollDown() {
     scrollController.jumpTo(scrollController.position.maxScrollExtent + 80);
+  }
+
+  void _showScaledRecipeDialog(
+    BuildContext context,
+    BakersPercentViewModel viewModel,
+    double scale,
+    String title,
+  ) {
+    // 유효한 재료만 필터링 (이미 calculatePercent가 호출되었음)
+    final validIngredients =
+        viewModel.ingredients.where((ingredient) => ingredient.name.isNotEmpty && ingredient.weight > 0).toList();
+
+    if (validIngredients.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('재료를 입력해주세요'),
+          duration: Duration(seconds: 2),
+          backgroundColor: AppColors.primaryColor90,
+        ),
+      );
+      return;
+    }
+
+    // 스케일 적용
+    final scaledIngredients = validIngredients.map((ingredient) {
+      num scaledWeight = ingredient.weight * scale;
+      // 소수점 한 자리로 반올림
+      scaledWeight = (scaledWeight * 10).round() / 10;
+      if (scaledWeight % 1 == 0) {
+        scaledWeight = scaledWeight.toInt();
+      }
+
+      return ingredient.copyWith(weight: scaledWeight);
+    }).toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              children: [
+                AppBar(
+                  title: Text('$title 용량'),
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...scaledIngredients.map((ingredient) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${ingredient.name}${ingredient.isFlour ? ' 🌾' : ''}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Text(
+                                  '${ingredient.weight}g',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${ingredient.percent}%',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          // 스케일된 무게를 현재 재료 목록에 적용
+                          for (var scaledIngredient in scaledIngredients) {
+                            viewModel.onEditingIngredient(
+                              scaledIngredient.id,
+                              weight: scaledIngredient.weight,
+                            );
+                          }
+
+                          // 백분율 다시 계산
+                          viewModel.calculatePercent();
+
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$title 용량이 적용되었습니다'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        });
+                        Navigator.of(dialogContext).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor10,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        '레시피에 적용',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showSaveDialog(BuildContext context, BakersPercentViewModel viewModel) {
@@ -202,10 +421,9 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
               border: OutlineInputBorder(),
             ),
             autofocus: true,
-            onSubmitted: (_) {
+            onSubmitted: (_) async {
               final name = nameController.text;
               Navigator.of(dialogContext).pop();
-              // 다이얼로그가 완전히 닫힌 후 정리 및 저장 작업 실행
               Future.delayed(const Duration(milliseconds: 100), () {
                 nameController.dispose();
                 if (!context.mounted) return;
@@ -217,7 +435,6 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                // 다이얼로그가 완전히 닫힌 후 정리
                 Future.delayed(const Duration(milliseconds: 100), () {
                   nameController.dispose();
                 });
@@ -228,7 +445,6 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
               onPressed: () {
                 final name = nameController.text;
                 Navigator.of(dialogContext).pop();
-                // 다이얼로그가 완전히 닫힌 후 정리 및 저장 작업 실행
                 Future.delayed(const Duration(milliseconds: 100), () {
                   nameController.dispose();
                   if (!context.mounted) return;
@@ -267,9 +483,6 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
           backgroundColor: Colors.green,
         ),
       );
-
-      // 레시피 목록 화면으로 이동
-      context.push(AppRouter.recipeList);
     } catch (e) {
       if (!mounted || !context.mounted) return;
 

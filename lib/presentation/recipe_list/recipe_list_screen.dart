@@ -125,63 +125,77 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(recipe.name ?? '레시피 상세'),
-          content: SingleChildScrollView(
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.8,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '생성일: ${DateFormat('yyyy-MM-dd HH:mm').format(recipe.createdAt)}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                AppBar(
+                  title: Text(recipe.name ?? '레시피 상세'),
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  '재료 목록:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                ...recipe.ingredients.map((ingredient) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            '${ingredient.name}${ingredient.isFlour ? ' 🌾' : ''}',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
                         Text(
-                          '${ingredient.weight}g',
-                          style: const TextStyle(fontSize: 14),
+                          '생성일: ${DateFormat('yyyy-MM-dd HH:mm').format(recipe.createdAt)}',
+                          style: const TextStyle(color: Colors.grey, fontSize: 12),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${ingredient.percent}%',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '재료 목록:',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
+                        const SizedBox(height: 8),
+                        ...recipe.ingredients.map((ingredient) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${ingredient.name}${ingredient.isFlour ? ' 🌾' : ''}',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Text(
+                                  '${ingredient.weight}g',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${ingredient.percent}%',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                       ],
                     ),
-                  );
-                }),
+                  ),
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('닫기'),
-            ),
-          ],
         );
       },
     );

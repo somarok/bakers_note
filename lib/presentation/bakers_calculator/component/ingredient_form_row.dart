@@ -22,22 +22,71 @@ class IngredientFormRow extends StatefulWidget {
 }
 
 class _IngredientFormRowState extends State<IngredientFormRow> {
-  final _focus = FocusNode();
+  final _nameFocus = FocusNode();
+  final _weightFocus = FocusNode();
+  late TextEditingController _nameController;
+  late TextEditingController _weightController;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(
+      text: widget.ingredient.name.isEmpty ? '' : widget.ingredient.name,
+    );
+    _weightController = TextEditingController(
+      text: widget.ingredient.weight == 0 ? '' : widget.ingredient.weight.toString(),
+    );
 
-    // _focus.addListener(() {
-    //   if (!_focus.hasFocus) {
-    //     widget.onEditingWeightComplete(widget.ingredient.id);
-    //   }
-    // });
+    // 포커스를 잃을 때만 ViewModel 업데이트
+    _nameFocus.addListener(() {
+      if (!_nameFocus.hasFocus) {
+        widget.onEditingIngredient(widget.ingredient.id, name: _nameController.text);
+      }
+    });
+
+    _weightFocus.addListener(() {
+      if (!_weightFocus.hasFocus) {
+        widget.onEditingIngredient(
+          widget.ingredient.id,
+          weight: int.tryParse(_weightController.text) ?? 0,
+        );
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(IngredientFormRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 절반 다이얼로그 등 외부에서 무게를 변경했을 때만 업데이트
+    // 포커스가 없고, 실제로 값이 다를 때만
+    if (widget.ingredient.weight != oldWidget.ingredient.weight) {
+      final newWeight = widget.ingredient.weight == 0 ? '' : widget.ingredient.weight.toString();
+      if (!_weightFocus.hasFocus && _weightController.text != newWeight) {
+        // 현재 프레임이 끝난 후에 업데이트
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_weightFocus.hasFocus && _weightController.text != newWeight) {
+            _weightController.value = TextEditingValue(
+              text: newWeight,
+              selection: TextSelection.collapsed(offset: newWeight.length),
+            );
+          }
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _focus.dispose();
+    // 명시적으로 포커스 해제
+    _nameFocus.unfocus();
+    _weightFocus.unfocus();
+
+    // FocusNode와 Controller dispose
+    _nameFocus.dispose();
+    _weightFocus.dispose();
+    _nameController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -56,7 +105,7 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
           color: Colors.white,
         ),
       ),
-      key: UniqueKey(),
+      key: ValueKey(ingredient.id),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 5),
         margin: const EdgeInsets.all(2),
@@ -81,7 +130,8 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
             Expanded(
               flex: 3,
               child: TextFormField(
-                initialValue: ingredient.name.isEmpty ? '' : ingredient.name,
+                controller: _nameController,
+                focusNode: _nameFocus,
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.name,
                 decoration: const InputDecoration(
@@ -89,24 +139,16 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
                   border: InputBorder.none,
                 ),
                 style: const TextStyle(fontSize: 13),
-                onChanged: (value) {
-                  widget.onEditingIngredient(
-                    ingredient.id,
-                    name: value,
-                  );
-                },
                 onEditingComplete: () {
-                  _focus.nextFocus();
+                  _weightFocus.requestFocus();
                 },
               ),
             ),
             Expanded(
               flex: 2,
               child: TextFormField(
-                initialValue: widget.ingredient.weight == 0
-                    ? ''
-                    : widget.ingredient.weight.toString(),
-                focusNode: _focus,
+                controller: _weightController,
+                focusNode: _weightFocus,
                 textInputAction: TextInputAction.done,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
@@ -117,12 +159,6 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
                 style: const TextStyle(
                   fontSize: 13,
                 ),
-                onChanged: (value) {
-                  widget.onEditingIngredient(
-                    ingredient.id,
-                    weight: int.tryParse(value) ?? 0,
-                  );
-                },
                 onEditingComplete: () {
                   widget.onEditingWeightComplete(ingredient.id);
                 },

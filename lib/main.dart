@@ -1,12 +1,12 @@
 import 'package:bakers_note/data/model/bakers_recipe.dart';
 import 'package:bakers_note/data/model/ingredient.dart';
+import 'package:bakers_note/di/di_setup.dart';
 import 'package:bakers_note/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   // Hive 초기화
   await Hive.initFlutter();
 
@@ -16,6 +16,8 @@ void main() async {
 
   // Box 열기
   await Hive.openBox<BakersRecipe>('recipes');
+
+  diSetup();
 
   runApp(const MyApp());
 }
