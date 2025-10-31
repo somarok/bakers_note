@@ -1,3 +1,4 @@
+import 'package:bakers_note/common/app_colors.dart';
 import 'package:bakers_note/data/model/bakers_recipe.dart';
 import 'package:bakers_note/data/repository/recipe_repository.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +31,8 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('내 레시피'),
-        surfaceTintColor: Theme.of(context).scaffoldBackgroundColor,
+        title: const Text('내 레시피 📝'),
+        surfaceTintColor: AppColors.primaryColor90,
       ),
       body: _recipes.isEmpty
           ? const Center(
@@ -63,15 +64,20 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text('재료: ${recipe.ingredients.length}개'),
-                        Text(
-                          '생성일: ${DateFormat('yyyy-MM-dd HH:mm').format(recipe.createdAt)}',
-                          style: const TextStyle(fontSize: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('재료 ${recipe.ingredients.length}개'),
+                            Text(
+                              DateFormat('yyyy.MM.dd HH:mm').format(recipe.createdAt),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete, color: Color.fromARGB(255, 122, 122, 122)),
                       onPressed: () => _deleteRecipe(index),
                     ),
                     onTap: () => _showRecipeDetails(recipe),

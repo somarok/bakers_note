@@ -31,7 +31,10 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('베이커스 퍼센트'),
+        title: const Text(
+          '베이커스 퍼센트 계산하기',
+          style: TextStyle(fontSize: 15),
+        ),
         surfaceTintColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
           TextButton(
@@ -45,13 +48,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
               if (ingredientsWithoutWeight.isNotEmpty) {
                 final ingredientNames = ingredientsWithoutWeight.map((ingredient) => ingredient.name).join(', ');
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$ingredientNames의 무게를 입력해주세요'),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: AppColors.primaryColor90,
-                  ),
-                );
+                _showSnackBar(context, '$ingredientNames의 무게를 입력해주세요');
                 return;
               }
 
@@ -61,13 +58,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                   .toList();
 
               if (validIngredients.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('재료의 이름을 입력해주세요'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: AppColors.primaryColor90,
-                  ),
-                );
+                _showSnackBar(context, '재료의 이름을 입력해주세요');
                 return;
               }
 
@@ -119,12 +110,9 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                           ),
                           const Expanded(
                             flex: 2,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 10),
-                              child: Text(
-                                '재료',
-                                textAlign: TextAlign.left,
-                              ),
+                            child: Text(
+                              '재료',
+                              textAlign: TextAlign.center,
                             ),
                           ),
                           const Expanded(
@@ -161,7 +149,14 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                             // 마지막 인덱스일 때 버튼 반환
                             if (index == viewModel.ingredients.length) {
                               return Container(
-                                padding: const EdgeInsets.all(16.0),
+                                margin: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor10,
+                                  boxShadow: const [
+                                    BoxShadow(color: Colors.black12, blurRadius: 1, offset: Offset(0, 1))
+                                  ],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                                 child: IconButton(
                                   onPressed: () {
                                     viewModel.onPressAddIngredientButton();
@@ -199,13 +194,8 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
             Positioned(
               bottom: 0,
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _scaleButton(
-                    label: '1/2',
-                    scale: 0.5,
-                    viewModel: viewModel,
-                  ),
-                  const SizedBox(width: 10),
                   _scaleButton(
                     label: '1/4',
                     scale: 0.25,
@@ -213,8 +203,20 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                   ),
                   const SizedBox(width: 10),
                   _scaleButton(
+                    label: '1/2',
+                    scale: 0.5,
+                    viewModel: viewModel,
+                  ),
+                  const SizedBox(width: 10),
+                  _scaleButton(
                     label: '2배',
                     scale: 2.0,
+                    viewModel: viewModel,
+                  ),
+                  const SizedBox(width: 10),
+                  _scaleButton(
+                    label: '4배',
+                    scale: 4.0,
                     viewModel: viewModel,
                   )
                 ],
@@ -253,7 +255,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
           color: AppColors.primaryColor10,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(label),
+        child: Text(label, style: const TextStyle(color: Colors.black)),
       ),
     );
   }
@@ -274,13 +276,8 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
 
     if (validIngredients.isEmpty) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('재료를 입력해주세요'),
-          duration: Duration(seconds: 2),
-          backgroundColor: AppColors.primaryColor90,
-        ),
-      );
+      _showSnackBar(context, '재료와 무게를 입력해주세요');
+
       return;
     }
 
@@ -377,13 +374,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
 
                           if (!context.mounted) return;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('$title 용량이 적용되었습니다'),
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          _showSnackBar(context, '$title 용량이 적용되었습니다');
                         });
                         Navigator.of(dialogContext).pop();
                       },
@@ -418,7 +409,7 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
             controller: nameController,
             decoration: const InputDecoration(
               hintText: '레시피 이름을 입력하세요',
-              border: OutlineInputBorder(),
+              // border: OutlineInputBorder(),
             ),
             autofocus: true,
             onSubmitted: (_) async {
@@ -472,28 +463,27 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
       if (!mounted || !context.mounted) return;
 
       // 저장 완료 메시지 표시
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            recipe.name != null
-                ? '"${recipe.name}" 레시피가 저장되었습니다 (재료 ${recipe.ingredients.length}개)'
-                : '레시피가 저장되었습니다 (재료 ${recipe.ingredients.length}개)',
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
+      _showSnackBar(
+        context,
+        recipe.name != null
+            ? '"${recipe.name}" 레시피가 저장되었습니다 (재료 ${recipe.ingredients.length}개)'
+            : '레시피가 저장되었습니다 (재료 ${recipe.ingredients.length}개)',
       );
     } catch (e) {
       if (!mounted || !context.mounted) return;
 
       // 에러 메시지 표시
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('저장 중 오류가 발생했습니다: $e'),
-          duration: const Duration(seconds: 2),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar(context, '저장 중 오류가 발생했습니다: $e');
     }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 1),
+        backgroundColor: const Color.fromARGB(255, 86, 86, 86),
+      ),
+    );
   }
 }
