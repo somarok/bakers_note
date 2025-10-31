@@ -12,45 +12,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-var firebaseCrashlytics = FirebaseCrashlytics.instance;
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  FlutterError.onError = (errorDetails) {
-    firebaseCrashlytics.recordFlutterFatalError(errorDetails);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    firebaseCrashlytics.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  // .env 파일 로드
-  await dotenv.load(fileName: ".env");
-
-  // Hive 초기화
-  await Hive.initFlutter();
-
-  // TypeAdapter 등록
-  Hive.registerAdapter(IngredientAdapter());
-  Hive.registerAdapter(BakersRecipeAdapter());
-
-  // Box 열기
-  await Hive.openBox<BakersRecipe>('recipes');
-
-  diSetup();
-
+void main() {
   runZonedGuarded(
-    () {
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      final firebaseCrashlytics = FirebaseCrashlytics.instance;
+
+      FlutterError.onError = (errorDetails) {
+        firebaseCrashlytics.recordFlutterFatalError(errorDetails);
+      };
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        firebaseCrashlytics.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      // .env 파일 로드
+      await dotenv.load(fileName: ".env");
+
+      // Hive 초기화
+      await Hive.initFlutter();
+
+      // TypeAdapter 등록
+      Hive.registerAdapter(IngredientAdapter());
+      Hive.registerAdapter(BakersRecipeAdapter());
+
+      // Box 열기
+      await Hive.openBox<BakersRecipe>('recipes');
+
+      diSetup();
+
       runApp(const MyApp());
     },
-    (error, stack) => firebaseCrashlytics.recordError(
-      error,
-      stack,
-      fatal: true,
-    ),
+    (error, stack) {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        fatal: true,
+      );
+    },
   );
 }
 
