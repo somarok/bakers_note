@@ -48,4 +48,4 @@ app.*.map.json
 /android/app/release
 
 # firebase
-google-services.json
+/android/google-services.json
