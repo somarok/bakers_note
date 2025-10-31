@@ -36,16 +36,19 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
         title: const Text('내 레시피 📝'),
         surfaceTintColor: AppColors.primaryColor90,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.auto_awesome),
-            tooltip: 'AI로 레시피 추가',
-            onPressed: () {
-              context.push(AppRouter.aiRecipeAdd).then((result) {
-                if (result == true) {
-                  _loadRecipes();
-                }
-              });
-            },
+          Visibility( // TODO. 추후 AI 기능 구현 시 활성화
+            visible: false,
+            child: IconButton(
+              icon: const Icon(Icons.auto_awesome),
+              tooltip: 'AI로 레시피 추가',
+              onPressed: () {
+                context.push(AppRouter.aiRecipeAdd).then((result) {
+                  if (result == true) {
+                    _loadRecipes();
+                  }
+                });
+              },
+            ),
           ),
         ],
       ),
