@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "708626875021",
+    "project_id": "baker-s-note",
+    "storage_bucket": "baker-s-note.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708626875021:android:f573f5d2e488bb2e3598c4",
+        "android_client_info": {
+          "package_name": "com.somarok.bakers_note"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNYHgeJ6YO4tXzYt4OffMMnHP7ObX-cnU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

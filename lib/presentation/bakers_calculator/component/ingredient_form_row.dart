@@ -58,8 +58,22 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
   void didUpdateWidget(IngredientFormRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 절반 다이얼로그 등 외부에서 무게를 변경했을 때만 업데이트
-    // 포커스가 없고, 실제로 값이 다를 때만
+    // 외부에서 재료명이 변경되었을 때 업데이트 (레시피 불러오기 등)
+    if (widget.ingredient.name != oldWidget.ingredient.name) {
+      final newName = widget.ingredient.name;
+      if (!_nameFocus.hasFocus && _nameController.text != newName) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_nameFocus.hasFocus && _nameController.text != newName) {
+            _nameController.value = TextEditingValue(
+              text: newName,
+              selection: TextSelection.collapsed(offset: newName.length),
+            );
+          }
+        });
+      }
+    }
+
+    // 외부에서 무게를 변경했을 때 업데이트 (절반 다이얼로그, 레시피 불러오기 등)
     if (widget.ingredient.weight != oldWidget.ingredient.weight) {
       final newWeight = widget.ingredient.weight == 0 ? '' : widget.ingredient.weight.toString();
       if (!_weightFocus.hasFocus && _weightController.text != newWeight) {
@@ -123,6 +137,7 @@ class _IngredientFormRowState extends State<IngredientFormRow> {
         ),
         child: Row(
           children: [
+            Icon(Icons.drag_indicator_outlined, color: Colors.grey[400], size: 16),
             Checkbox(
               value: ingredient.isFlour,
               onChanged: (v) => widget.onLongPressed(ingredient.id),

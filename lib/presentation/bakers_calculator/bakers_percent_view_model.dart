@@ -126,5 +126,23 @@ class BakersPercentViewModel with ChangeNotifier {
     return _repository.getAllRecipes();
   }
 
+  /// 레시피 불러오기
+  void loadRecipe(BakersRecipe recipe) {
+    _ingredients = recipe.ingredients.map((ingredient) {
+      return ingredient.copyWith();
+    }).toList();
+    notifyListeners();
+  }
+
+  /// 재료 순서 변경
+  void reorderIngredients(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final ingredient = _ingredients.removeAt(oldIndex);
+    _ingredients.insert(newIndex, ingredient);
+    notifyListeners();
+  }
+
   // TODO. 입력한 백분율로 용량 조절해서 보여주기
 }

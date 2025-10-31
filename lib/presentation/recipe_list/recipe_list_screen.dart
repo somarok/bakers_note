@@ -1,7 +1,9 @@
 import 'package:bakers_note/common/app_colors.dart';
 import 'package:bakers_note/data/model/bakers_recipe.dart';
 import 'package:bakers_note/data/repository/recipe_repository.dart';
+import 'package:bakers_note/router/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class RecipeListScreen extends StatefulWidget {
@@ -33,6 +35,19 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
       appBar: AppBar(
         title: const Text('내 레시피 📝'),
         surfaceTintColor: AppColors.primaryColor90,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'AI로 레시피 추가',
+            onPressed: () {
+              context.push(AppRouter.aiRecipeAdd).then((result) {
+                if (result == true) {
+                  _loadRecipes();
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: _recipes.isEmpty
           ? const Center(
@@ -80,7 +95,18 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                       icon: const Icon(Icons.delete, color: Color.fromARGB(255, 122, 122, 122)),
                       onPressed: () => _deleteRecipe(index),
                     ),
-                    onTap: () => _showRecipeDetails(recipe),
+                    onTap: () {
+                      context.push(
+                        AppRouter.recipeDetail,
+                        extra: {
+                          'recipe': recipe,
+                          'index': index,
+                        },
+                      ).then((_) {
+                        // 화면에서 돌아올 때 목록 새로고침
+                        _loadRecipes();
+                      });
+                    },
                   ),
                 );
               },
@@ -122,86 +148,6 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void _showRecipeDetails(BakersRecipe recipe) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.maxFinite,
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: Column(
-              children: [
-                AppBar(
-                  title: Text(recipe.name ?? '레시피 상세'),
-                  automaticallyImplyLeading: false,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '생성일: ${DateFormat('yyyy-MM-dd HH:mm').format(recipe.createdAt)}',
-                          style: const TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '재료 목록:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        ...recipe.ingredients.map((ingredient) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${ingredient.name}${ingredient.isFlour ? ' 🌾' : ''}',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Text(
-                                  '${ingredient.weight}g',
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '${ingredient.percent}%',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         );
       },
     );

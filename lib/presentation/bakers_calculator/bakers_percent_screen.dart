@@ -38,6 +38,12 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
         surfaceTintColor: Theme.of(context).scaffoldBackgroundColor,
         actions: [
           TextButton(
+            child: const Text('불러오기'),
+            onPressed: () {
+              _showLoadRecipeDialog(context, viewModel);
+            },
+          ),
+          TextButton(
             child: const Text('저장'),
             onPressed: () {
               // 재료명만 있고 무게가 없는 경우 확인
@@ -140,38 +146,48 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Scrollbar(
-                        controller: scrollController,
-                        child: ListView.builder(
-                          controller: scrollController,
-                          itemCount: viewModel.ingredients.length + 1, // 버튼을 위한 +1
-                          itemBuilder: (context, index) {
-                            // 마지막 인덱스일 때 버튼 반환
-                            if (index == viewModel.ingredients.length) {
-                              return Container(
-                                margin: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor10,
-                                  boxShadow: const [
-                                    BoxShadow(color: Colors.black12, blurRadius: 1, offset: Offset(0, 1))
-                                  ],
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    viewModel.onPressAddIngredientButton();
-                                    _scrollDown();
-                                  },
-                                  tooltip: '재료 추가',
-                                  icon: const Icon(Icons.add),
-                                ),
-                              );
-                            }
+                      child: ReorderableListView.builder(
+                        scrollController: scrollController,
+                        buildDefaultDragHandles: false, // 커스텀 드래그 핸들 사용
+                        itemCount: viewModel.ingredients.length + 1, // 버튼을 위한 +1
+                        onReorder: (oldIndex, newIndex) {
+                          // 마지막 인덱스(버튼)는 재정렬 불가
+                          if (oldIndex == viewModel.ingredients.length || newIndex == viewModel.ingredients.length) {
+                            return;
+                          }
+                          viewModel.reorderIngredients(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          // 마지막 인덱스일 때 버튼 반환
+                          if (index == viewModel.ingredients.length) {
+                            return Container(
+                              key: const ValueKey('add_button'),
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor10,
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black12, blurRadius: 1, offset: Offset(0, 1))
+                                ],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: IconButton(
+                                onPressed: () {
+                                  viewModel.onPressAddIngredientButton();
+                                  _scrollDown();
+                                },
+                                tooltip: '재료 추가',
+                                icon: const Icon(Icons.add),
+                              ),
+                            );
+                          }
 
-                            // 그 외에는 재료 행 반환
-                            final ingredient = viewModel.ingredients[index];
-                            return IngredientFormRow(
-                              key: ValueKey(ingredient.id),
+                          // 그 외에는 재료 행 반환
+                          final ingredient = viewModel.ingredients[index];
+                          return ReorderableDragStartListener(
+                            key: ValueKey(ingredient.id),
+                            index: index,
+                            child: IngredientFormRow(
+                              key: ValueKey('ingredient_${ingredient.id}'),
                               onLongPressed: (int id) => viewModel.onLongPressedRow(ingredient.id),
                               onEditingWeightComplete: (int id) {
                                 viewModel.onFinishedAddIngredient(ingredient.id);
@@ -181,9 +197,9 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
                               onDismissed: () => viewModel.onDismissedIngredient(ingredient.id),
                               onEditingIngredient: (int id, {String? name, num? weight}) =>
                                   viewModel.onEditingIngredient(id, name: name, weight: weight),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 50),
@@ -484,6 +500,77 @@ class _BakersPercentScreenState extends State<BakersPercentScreen> {
         duration: const Duration(seconds: 1),
         backgroundColor: const Color.fromARGB(255, 86, 86, 86),
       ),
+    );
+  }
+
+  void _showLoadRecipeDialog(BuildContext context, BakersPercentViewModel viewModel) {
+    final recipes = viewModel.getSavedRecipes();
+
+    if (recipes.isEmpty) {
+      _showSnackBar(context, '저장된 레시피가 없습니다');
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              children: [
+                AppBar(
+                  title: const Text('레시피 불러오기'),
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: recipes.length,
+                    itemBuilder: (context, index) {
+                      final recipe = recipes[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(
+                            recipe.name ?? '이름 없는 레시피',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text('재료: ${recipe.ingredients.length}개'),
+                            ],
+                          ),
+                          onTap: () {
+                            viewModel.loadRecipe(recipe);
+                            Navigator.of(dialogContext).pop();
+                            _showSnackBar(context, '레시피를 불러왔습니다');
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

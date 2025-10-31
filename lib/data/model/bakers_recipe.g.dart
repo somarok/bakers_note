@@ -20,19 +20,25 @@ class BakersRecipeAdapter extends TypeAdapter<BakersRecipe> {
       name: fields[0] as String?,
       ingredients: (fields[1] as List).cast<Ingredient>(),
       createdAt: fields[2] as DateTime,
+      imagePath: fields[3] as String?,
+      description: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, BakersRecipe obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.ingredients)
       ..writeByte(2)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(3)
+      ..write(obj.imagePath)
+      ..writeByte(4)
+      ..write(obj.description);
   }
 
   @override

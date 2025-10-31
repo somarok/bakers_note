@@ -14,21 +14,33 @@ class BakersRecipe {
   @HiveField(2)
   final DateTime createdAt;
 
+  @HiveField(3)
+  final String? imagePath;
+
+  @HiveField(4)
+  final String? description;
+
   const BakersRecipe({
     this.name,
     required this.ingredients,
     required this.createdAt,
+    this.imagePath,
+    this.description,
   });
 
   BakersRecipe copyWith({
     String? name,
     List<Ingredient>? ingredients,
     DateTime? createdAt,
+    String? imagePath,
+    String? description,
   }) {
     return BakersRecipe(
       name: name ?? this.name,
       ingredients: ingredients ?? this.ingredients,
       createdAt: createdAt ?? this.createdAt,
+      imagePath: imagePath ?? this.imagePath,
+      description: description ?? this.description,
     );
   }
 
@@ -37,6 +49,8 @@ class BakersRecipe {
       'name': name,
       'ingredients': ingredients.map((e) => e.toJson()).toList(),
       'createdAt': createdAt.toIso8601String(),
+      'imagePath': imagePath,
+      'description': description,
     };
   }
 
@@ -47,6 +61,8 @@ class BakersRecipe {
           .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
           .toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      imagePath: json['imagePath'] as String?,
+      description: json['description'] as String?,
     );
   }
 

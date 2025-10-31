@@ -54,8 +54,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _tabController.index = value;
         }),
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Recipes'),
+          BottomNavigationBarItem(icon: Icon(Icons.percent), label: '계산하기'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: '레시피 노트'),
         ],
       ),
     );
