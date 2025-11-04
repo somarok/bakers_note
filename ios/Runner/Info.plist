@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>레시피 사진을 촬영하기 위해 카메라 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>레시피 이미지를 선택하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>레시피 이미지를 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
 </dict>
 </plist>
